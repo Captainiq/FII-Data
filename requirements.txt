@@ -1,6 +1,0 @@
-Flask
-pandas
-SQLAlchemy
-Flask-SQLAlchemy
-requests
-gunicorn  # <-- Essential for production hosting
