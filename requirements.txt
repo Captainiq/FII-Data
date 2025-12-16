@@ -1,4 +1,5 @@
-streamlit
-fredapi
+Flask
 pandas
-yfinance
+SQLAlchemy
+Flask-SQLAlchemy
+requests
