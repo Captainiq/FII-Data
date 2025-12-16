@@ -1,0 +1,276 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>FII/DII Market Flow Analysis Dashboard</title>
+    
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+
+    <style>
+        body { font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; margin: 0; padding: 20px; background-color: #f4f7f9; }
+        .container { max-width: 1300px; margin: auto; background-color: #ffffff; padding: 30px; border-radius: 12px; box-shadow: 0 6px 15px rgba(0, 0, 0, 0.1); }
+        h1 { color: #1e3a8a; text-align: center; margin-bottom: 20px; }
+        h2 { color: #3b82f6; border-bottom: 2px solid #e0e7ff; padding-bottom: 5px; margin-top: 30px; }
+        .data-table, .analysis-table { width: 100%; border-collapse: collapse; margin-top: 20px; font-size: 0.9em; }
+        .data-table th, .data-table td, .analysis-table th, .analysis-table td { border: 1px solid #e5e7eb; padding: 10px; text-align: right; }
+        .data-table th, .analysis-table th { background-color: #eff6ff; color: #1e3a8a; text-align: center; font-weight: 600; }
+        .data-table tr:nth-child(even) { background-color: #f9fafb; }
+        .positive { color: #10b981; font-weight: bold; }
+        .negative { color: #ef4444; font-weight: bold; }
+        .neutral { color: #6b7280; }
+        .chart-container { margin-top: 40px; padding: 10px; border: 1px solid #e5e7eb; border-radius: 8px; }
+        .status-message { color: #f97316; font-weight: bold; text-align: center; padding: 10px; }
+        #lastUpdated { font-weight: bold; color: #059669; }
+    </style>
+</head>
+<body>
+
+<div class="container">
+    <h1>FII/DII Daily Market Flow Analysis</h1>
+    <p>Last updated: <span id="lastUpdated">Loading...</span></p>
+
+    <h2>Daily Institutional Activity (Last 10 Days, Cr)</h2>
+    <table id="dataTable" class="data-table">
+        <tr><td colspan="7" class="status-message">Loading data...</td></tr>
+    </table>
+
+    <h2>Cash Market Trend (FII vs DII)</h2>
+    <div class="chart-container">
+        <canvas id="cashMarketChart"></canvas>
+    </div>
+    
+    <h2>Next Day Bias Indicators (Latest Data)</h2>
+    <table class="analysis-table">
+        <tr>
+            <th>Metric</th>
+            <th>Latest Value (Cr)</th>
+            <th>Interpretation</th>
+        </tr>
+        <tr>
+            <td>FII Net Cash</td>
+            <td id="latestFIICash" class="neutral">-</td>
+            <td id="biasFIICash" class="neutral">-</td>
+        </tr>
+        <tr>
+            <td>FII Net Index Futures</td>
+            <td id="latestFIIFutures" class="neutral">-</td>
+            <td id="biasFIIFutures" class="neutral">-</td>
+        </tr>
+        <tr>
+            <td>Total Net Institutional Cash Flow (FII + DII)</td>
+            <td id="latestTotalCash" class="neutral">-</td>
+            <td id="biasTotalCash" class="neutral">-</td>
+        </tr>
+    </table>
+    
+    <p class="status-message" id="errorMessage" style="display:none; color: red;"></p>
+
+</div>
+
+<script>
+    // --- YOUR GOOGLE SHEETS CONFIGURATION ---
+    const SPREADSHEET_ID = '12e5NUDJQXnyB2V27WynpgGw2Gwg4oxqefc8jVOyy3aM';
+    const API_KEY = 'AIzaSyBYXp1ILH81N2lo_oPn6mGvju0hpyWTHFI';
+    
+    // !!! CRUCIAL: ENSURE 'FII-DII' MATCHES YOUR GOOGLE SHEET TAB NAME !!!
+    // Assumes data is in columns A to G, up to row 100
+    const RANGE = 'FII-DII!A1:G100'; 
+    // --- END CONFIGURATION ---
+
+    const URL = `https://sheets.googleapis.com/v4/spreadsheets/${SPREADSHEET_ID}/values/${RANGE}?key=${API_KEY}`;
+
+    let dataRows = [];
+    let headers = [];
+
+    // --- HELPER FUNCTION: Clean and parse the financial value ---
+    function parseValue(value) {
+        if (typeof value === 'string') {
+            // Remove commas and spaces, then parse as float
+            return parseFloat(value.replace(/,/g, '').trim()) || 0;
+        }
+        return value || 0;
+    }
+
+    // --- HELPER FUNCTION: Format value for display ---
+    function formatValue(value) {
+        const num = parseValue(value);
+        const formatted = num.toLocaleString('en-IN', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+        const className = num > 0 ? 'positive' : (num < 0 ? 'negative' : 'neutral');
+        return `<span class="${className}">${formatted} Cr</span>`;
+    }
+
+    // --- MAIN FETCH AND RENDER FUNCTION ---
+    async function fetchDataAndRender() {
+        try {
+            const response = await fetch(URL);
+            const data = await response.json();
+            
+            if (data.error || !data.values || data.values.length < 2) {
+                const errorMsg = data.error ? data.error.message : 'No data found or sheet is empty.';
+                document.getElementById('errorMessage').textContent = `Error: ${errorMsg}. Check API Key, Sheet Sharing, and the RANGE variable.`;
+                document.getElementById('errorMessage').style.display = 'block';
+                document.getElementById('dataTable').innerHTML = '<tr><td colspan="7" class="status-message">ERROR: Data not loaded. Check console for details.</td></tr>';
+                return;
+            }
+
+            headers = data.values[0];
+            // Get all data rows, excluding the header
+            dataRows = data.values.slice(1).filter(row => row.length > 1 && row[0] !== ""); // Filter out empty or incomplete rows
+            
+            // Reverse the array to show most recent data first in tables
+            dataRows.reverse();
+
+            renderTable();
+            renderBiasAnalysis();
+            renderChart();
+
+            const latestDate = dataRows[0] && dataRows[0][0] ? dataRows[0][0] : 'N/A';
+            document.getElementById('lastUpdated').textContent = latestDate;
+
+        } catch (error) {
+            console.error('Fatal Error fetching data:', error);
+            document.getElementById('errorMessage').textContent = `Fatal Error: Could not connect to Google API.`;
+            document.getElementById('errorMessage').style.display = 'block';
+            document.getElementById('dataTable').innerHTML = '<tr><td colspan="7" class="status-message">FATAL ERROR: See browser console for details.</td></tr>';
+        }
+    }
+    
+    // --- RENDER FUNCTIONS ---
+    function renderTable() {
+        const tableBody = document.getElementById('dataTable');
+        let html = '<thead><tr>';
+        
+        // Render headers
+        headers.forEach(header => {
+            html += `<th>${header}</th>`;
+        });
+        html += '</tr></thead><tbody>';
+
+        // Render data rows (showing only the last 10 days)
+        dataRows.slice(0, 10).forEach(row => {
+            html += '<tr>';
+            row.forEach((cell, index) => {
+                let cellContent = cell;
+                if (index > 0) { // Money columns (Index 1 and above)
+                    cellContent = formatValue(cell);
+                } else if (index === 0) { // Date column (Index 0)
+                    cellContent = `<span class="neutral" style="font-weight: 500;">${cell}</span>`;
+                }
+                html += `<td>${cellContent}</td>`;
+            });
+            html += '</tr>';
+        });
+
+        html += '</tbody>';
+        tableBody.innerHTML = html;
+    }
+    
+    function renderBiasAnalysis() {
+        if (dataRows.length === 0) return;
+        
+        // Data Column Indices (Ensure these match your Sheet structure A=0, B=1, C=2, etc.)
+        const COL_FII_CASH = 1;
+        const COL_DII_CASH = 2;
+        const COL_FII_FUTURES = 3;
+        
+        const latestData = dataRows[0];
+        
+        const fiiCash = parseValue(latestData[COL_FII_CASH]);
+        const diiCash = parseValue(latestData[COL_DII_CASH]);
+        const fiiFutures = parseValue(latestData[COL_FII_FUTURES]);
+        
+        const totalCashFlow = fiiCash + diiCash;
+        
+        // --- FII Cash Bias ---
+        document.getElementById('latestFIICash').innerHTML = formatValue(fiiCash);
+        document.getElementById('biasFIICash').textContent = 
+            fiiCash < -2000 ? 'Very Strong Negative' : 
+            fiiCash < -500 ? 'Negative' : 
+            fiiCash > 500 ? 'Positive' : 'Neutral/Cautious';
+
+        // --- FII Futures Bias ---
+        document.getElementById('latestFIIFutures').innerHTML = formatValue(fiiFutures);
+        document.getElementById('biasFIIFutures').textContent = 
+            fiiFutures < -1000 ? 'Strong Bearish Position' : 
+            fiiFutures < -100 ? 'Bearish' : 
+            fiiFutures > 100 ? 'Bullish' : 'Neutral/No clear direction';
+            
+        // --- Total Institutional Cash Bias ---
+        document.getElementById('latestTotalCash').innerHTML = formatValue(totalCashFlow);
+        document.getElementById('biasTotalCash').textContent = 
+            totalCashFlow > 2000 ? 'Very Supportive (DII Offset)' : 
+            totalCashFlow > 0 ? 'Supportive' : 'Caution/Negative Pressure';
+    }
+
+    function renderChart() {
+        if (dataRows.length < 2) return;
+        
+        // Prepare data for Chart.js (reverse back to chronological order)
+        const chartData = dataRows.slice().reverse(); 
+        
+        const labels = chartData.map(row => row[0]); // Date
+        const fiiCashData = chartData.map(row => parseValue(row[1]));
+        const diiCashData = chartData.map(row => parseValue(row[2]));
+
+        const ctx = document.getElementById('cashMarketChart').getContext('2d');
+        
+        // Destroy existing chart if it exists to prevent overlap
+        if (window.cashChartInstance) {
+            window.cashChartInstance.destroy();
+        }
+
+        window.cashChartInstance = new Chart(ctx, {
+            type: 'line',
+            data: {
+                labels: labels,
+                datasets: [
+                    {
+                        label: 'FII Cash Market Flow (Cr)',
+                        data: fiiCashData,
+                        borderColor: '#dc2626', // Red
+                        backgroundColor: 'rgba(220, 38, 38, 0.2)',
+                        tension: 0.4,
+                        fill: false
+                    },
+                    {
+                        label: 'DII Cash Market Flow (Cr)',
+                        data: diiCashData,
+                        borderColor: '#2563eb', // Blue
+                        backgroundColor: 'rgba(37, 99, 235, 0.2)',
+                        tension: 0.4,
+                        fill: false
+                    }
+                ]
+            },
+            options: {
+                responsive: true,
+                plugins: {
+                    legend: {
+                        position: 'top',
+                    },
+                    title: {
+                        display: true,
+                        text: 'Daily Cash Market Net Flow Comparison'
+                    }
+                },
+                scales: {
+                    y: {
+                        beginAtZero: false,
+                        title: {
+                            display: true,
+                            text: 'Net Flow (Cr)'
+                        }
+                    }
+                }
+            }
+        });
+    }
+
+    // Initialize the application
+    fetchDataAndRender();
+
+</script>
+
+</body>
+</html>
