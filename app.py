@@ -102,9 +102,3 @@ def api_data():
         'history': data_list,
         'latest': latest_single
     })
-
-if __name__ == '__main__':
-    # Initialize the database and run the app
-    with app.app_context():
-        db.create_all()
-    app.run(debug=True)
