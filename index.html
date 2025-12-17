@@ -1,132 +1,327 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>FII/DII Market Trend Dashboard</title>
-    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
-    <style>
-        body { font-family: 'Inter', sans-serif; margin: 0; padding: 20px; background-color: #f0f2f5; color: #1a202c; }
-        .container { max-width: 1200px; margin: auto; background: white; padding: 30px; border-radius: 12px; box-shadow: 0 4px 20px rgba(0,0,0,0.08); }
-        .grid { display: grid; grid-template-columns: 1fr 1fr; gap: 20px; margin-top: 20px; }
-        .card { border: 1px solid #e2e8f0; padding: 15px; border-radius: 10px; background: #fff; }
-        h1, h2 { text-align: center; color: #2d3748; }
-        .positive { color: #38a169; font-weight: bold; }
-        .negative { color: #e53e3e; font-weight: bold; }
-        .indicator-box { text-align: center; padding: 20px; margin: 20px 0; border-radius: 10px; font-size: 1.2em; font-weight: bold; }
-        .buying-exhaustion { background: #fff5f5; color: #c53030; border: 2px solid #feb2b2; }
-        .selling-exhaustion { background: #f0fff4; color: #2f855a; border: 2px solid #9ae6b4; }
-        .neutral-box { background: #edf2f7; color: #4a5568; }
-        canvas { max-height: 350px; }
-        @media (max-width: 768px) { .grid { grid-template-columns: 1fr; } }
-    </style>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>FII/DII Pro Market Analysis Dashboard</title>
+
+  <!-- Chart.js -->
+  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+
+  <style>
+    body {
+      font-family: 'Inter', 'Segoe UI', sans-serif;
+      margin: 0;
+      padding: 20px;
+      background-color: #f0f2f5;
+      color: #1a202c;
+    }
+
+    .container {
+      max-width: 1400px;
+      margin: auto;
+      background: #ffffff;
+      padding: 30px;
+      border-radius: 14px;
+      box-shadow: 0 6px 20px rgba(0, 0, 0, 0.08);
+    }
+
+    h1 {
+      text-align: center;
+      color: #1e3a8a;
+      margin-bottom: 10px;
+    }
+
+    h2 {
+      color: #2563eb;
+      margin-top: 30px;
+      border-bottom: 2px solid #e5e7eb;
+      padding-bottom: 6px;
+    }
+
+    .grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 20px;
+      margin-top: 20px;
+    }
+
+    .card {
+      border: 1px solid #e5e7eb;
+      padding: 16px;
+      border-radius: 12px;
+      background: #ffffff;
+    }
+
+    canvas {
+      max-height: 360px;
+    }
+
+    .indicator-box {
+      text-align: center;
+      padding: 18px;
+      margin: 20px 0;
+      border-radius: 10px;
+      font-size: 1.2em;
+      font-weight: bold;
+    }
+
+    .buying-exhaustion {
+      background: #fff5f5;
+      color: #c53030;
+      border: 2px solid #feb2b2;
+    }
+
+    .selling-exhaustion {
+      background: #f0fff4;
+      color: #2f855a;
+      border: 2px solid #9ae6b4;
+    }
+
+    .neutral-box {
+      background: #edf2f7;
+      color: #4a5568;
+    }
+
+    .positive { color: #16a34a; font-weight: bold; }
+    .negative { color: #dc2626; font-weight: bold; }
+    .neutral { color: #6b7280; }
+
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      margin-top: 15px;
+      font-size: 0.9em;
+    }
+
+    th, td {
+      border: 1px solid #e5e7eb;
+      padding: 10px;
+      text-align: right;
+    }
+
+    th {
+      background: #eff6ff;
+      color: #1e3a8a;
+      text-align: center;
+    }
+
+    tr:nth-child(even) {
+      background: #f9fafb;
+    }
+
+    #lastUpdated {
+      font-weight: bold;
+      color: #059669;
+    }
+
+    @media (max-width: 900px) {
+      .grid { grid-template-columns: 1fr; }
+    }
+  </style>
 </head>
 <body>
 
 <div class="container">
-    <h1>FII/DII Pro Analysis Dashboard</h1>
-    
-    <div id="momentumIndicator" class="indicator-box neutral-box">Analyzing Market Momentum...</div>
+  <h1>FII/DII Pro Market Analysis Dashboard</h1>
+  <p style="text-align:center">Last Updated: <span id="lastUpdated">Loading...</span></p>
 
-    <div class="grid">
-        <div class="card">
-            <h2>Daily Cash Flow (Cr)</h2>
-            <canvas id="dailyChart"></canvas>
-        </div>
-        <div class="card">
-            <h2>Cumulative FII Flow (The Big Picture)</h2>
-            <canvas id="cumulativeChart"></canvas>
-        </div>
+  <!-- Momentum Indicator -->
+  <div id="momentumIndicator" class="indicator-box neutral-box">
+    Analyzing Market Momentum...
+  </div>
+
+  <!-- Charts -->
+  <div class="grid">
+    <div class="card">
+      <h2>Daily Cash Flow (FII vs DII)</h2>
+      <canvas id="dailyCashChart"></canvas>
     </div>
 
-    <div class="card" style="margin-top: 20px;">
-        <h2>Recent Data Snapshot</h2>
-        <div id="tableContainer"></div>
+    <div class="card">
+      <h2>Cumulative FII Flow (Big Picture)</h2>
+      <canvas id="cumulativeChart"></canvas>
     </div>
+  </div>
+
+  <!-- Table -->
+  <div class="card" style="margin-top:30px;">
+    <h2>Daily Institutional Activity (Last 10 Days)</h2>
+    <table id="dataTable">
+      <tr><td class="neutral" colspan="7">Loading data...</td></tr>
+    </table>
+  </div>
+
+  <!-- Bias Analysis -->
+  <div class="card" style="margin-top:30px;">
+    <h2>Next Day Bias Indicators (Latest Data)</h2>
+    <table>
+      <tr>
+        <th>Metric</th>
+        <th>Latest Value (Cr)</th>
+        <th>Interpretation</th>
+      </tr>
+      <tr>
+        <td>FII Net Cash</td>
+        <td id="latestFIICash" class="neutral">-</td>
+        <td id="biasFIICash" class="neutral">-</td>
+      </tr>
+      <tr>
+        <td>FII Net Index Futures</td>
+        <td id="latestFIIFutures" class="neutral">-</td>
+        <td id="biasFIIFutures" class="neutral">-</td>
+      </tr>
+      <tr>
+        <td>Total Institutional Cash (FII + DII)</td>
+        <td id="latestTotalCash" class="neutral">-</td>
+        <td id="biasTotalCash" class="neutral">-</td>
+      </tr>
+    </table>
+  </div>
 </div>
 
 <script>
-    const SPREADSHEET_ID = '12e5NUDJQXnyB2V27WynpgGw2Gwg4oxqefc8jVOyy3aM';
-    const API_KEY = 'AIzaSyBYXp1ILH81N2lo_oPn6mGvju0hpyWTHFI';
-    const RANGE = 'FII-DII!A1:G100'; 
+  /* ================= CONFIG ================= */
+  const SPREADSHEET_ID = '12e5NUDJQXnyB2V27WynpgGw2Gwg4oxqefc8jVOyy3aM';
+  const API_KEY = 'AIzaSyBYXp1ILH81N2lo_oPn6mGvju0hpyWTHFI';
+  const RANGE = 'FII-DII!A1:G100';
 
-    async function init() {
-        try {
-            const res = await fetch(`https://sheets.googleapis.com/v4/spreadsheets/${SPREADSHEET_ID}/values/${RANGE}?key=${API_KEY}`);
-            const data = await res.json();
-            const rows = data.values.slice(1).filter(r => r[0]); 
-            
-            // Logic: Process data (Chronological for charts)
-            const cleanData = rows.map(r => ({
-                date: r[0],
-                fii: parseFloat(r[1].replace(/,/g, '')) || 0,
-                dii: parseFloat(r[2].replace(/,/g, '')) || 0,
-                futures: parseFloat(r[3].replace(/,/g, '')) || 0
-            }));
+  const URL = `https://sheets.googleapis.com/v4/spreadsheets/${SPREADSHEET_ID}/values/${RANGE}?key=${API_KEY}`;
 
-            renderDashboard(cleanData);
-        } catch (err) {
-            document.getElementById('momentumIndicator').innerHTML = "Error loading data. Check Sheet sharing settings.";
-        }
+  let headers = [];
+  let rows = [];
+  let dailyChart, cumulativeChart;
+
+  /* ================= HELPERS ================= */
+  function parseValue(v) {
+    if (typeof v === 'string') return parseFloat(v.replace(/,/g, '')) || 0;
+    return v || 0;
+  }
+
+  function formatValue(v) {
+    const n = parseValue(v);
+    const cls = n > 0 ? 'positive' : n < 0 ? 'negative' : 'neutral';
+    return `<span class="${cls}">${n.toLocaleString('en-IN', {maximumFractionDigits:2})} Cr</span>`;
+  }
+
+  /* ================= MAIN ================= */
+  async function init() {
+    const res = await fetch(URL);
+    const data = await res.json();
+
+    headers = data.values[0];
+    rows = data.values.slice(1).filter(r => r[0]);
+
+    const latestDate = rows[rows.length - 1][0];
+    document.getElementById('lastUpdated').textContent = latestDate;
+
+    renderMomentum();
+    renderCharts();
+    renderTable();
+    renderBias();
+  }
+
+  /* ================= MOMENTUM ================= */
+  function renderMomentum() {
+    const indicator = document.getElementById('momentumIndicator');
+    const last3 = rows.slice(-3).map(r => parseValue(r[1]));
+
+    if (last3.length < 2) return;
+
+    const latest = last3[last3.length - 1];
+    const prev = last3[last3.length - 2];
+
+    if (latest < 0 && latest > prev) {
+      indicator.className = 'indicator-box selling-exhaustion';
+      indicator.textContent = 'SIGNAL: SELLING EXHAUSTION (Possible Bottom)';
+    } else if (latest > 0 && latest < prev) {
+      indicator.className = 'indicator-box buying-exhaustion';
+      indicator.textContent = 'SIGNAL: BUYING EXHAUSTION (Possible Top)';
+    } else {
+      indicator.className = 'indicator-box neutral-box';
+      indicator.textContent = latest > 0 ? 'BIAS: BULLISH MOMENTUM' : 'BIAS: BEARISH PRESSURE';
     }
+  }
 
-    function renderDashboard(data) {
-        // 1. Calculate Cumulative Flow
-        let cumulative = 0;
-        const cumulativeData = data.map(d => {
-            cumulative += d.fii;
-            return cumulative;
-        });
+  /* ================= CHARTS ================= */
+  function renderCharts() {
+    const labels = rows.map(r => r[0]);
+    const fii = rows.map(r => parseValue(r[1]));
+    const dii = rows.map(r => parseValue(r[2]));
 
-        const labels = data.map(d => d.date);
+    let cumulative = 0;
+    const cumulativeData = fii.map(v => (cumulative += v));
 
-        // 2. Momentum Indicator Logic
-        const last3 = data.slice(-3);
-        const latestFii = last3[last3.length-1].fii;
-        const prevFii = last3[last3.length-2].fii;
-        const indicator = document.getElementById('momentumIndicator');
+    if (dailyChart) dailyChart.destroy();
+    if (cumulativeChart) cumulativeChart.destroy();
 
-        if (latestFii < 0 && latestFii > prevFii) {
-            indicator.className = "indicator-box selling-exhaustion";
-            indicator.innerHTML = "SIGNAL: SELLING EXHAUSTION (Bottoming Out?)";
-        } else if (latestFii > 0 && latestFii < prevFii) {
-            indicator.className = "indicator-box buying-exhaustion";
-            indicator.innerHTML = "SIGNAL: BUYING EXHAUSTION (Near Top?)";
-        } else {
-            indicator.className = "indicator-box neutral-box";
-            indicator.innerHTML = latestFii < 0 ? "BIAS: BEARISH PRESSURE" : "BIAS: BULLISH MOMENTUM";
-        }
+    dailyChart = new Chart(document.getElementById('dailyCashChart'), {
+      type: 'bar',
+      data: {
+        labels,
+        datasets: [
+          { label: 'FII Cash', data: fii, backgroundColor: '#f87171' },
+          { label: 'DII Cash', data: dii, backgroundColor: '#60a5fa' }
+        ]
+      }
+    });
 
-        // 3. Daily Chart
-        new Chart(document.getElementById('dailyChart'), {
-            type: 'bar',
-            data: {
-                labels: labels,
-                datasets: [
-                    { label: 'FII Cash', data: data.map(d => d.fii), backgroundColor: '#fc8181' },
-                    { label: 'DII Cash', data: data.map(d => d.dii), backgroundColor: '#63b3ed' }
-                ]
-            }
-        });
+    cumulativeChart = new Chart(document.getElementById('cumulativeChart'), {
+      type: 'line',
+      data: {
+        labels,
+        datasets: [{
+          label: 'Cumulative FII Flow',
+          data: cumulativeData,
+          borderColor: '#374151',
+          backgroundColor: 'rgba(203,213,225,0.4)',
+          fill: true,
+          tension: 0.3
+        }]
+      }
+    });
+  }
 
-        // 4. Cumulative Chart (The Trend Line)
-        new Chart(document.getElementById('cumulativeChart'), {
-            type: 'line',
-            data: {
-                labels: labels,
-                datasets: [{
-                    label: 'Cumulative FII Net Flow',
-                    data: cumulativeData,
-                    borderColor: '#4a5568',
-                    fill: true,
-                    backgroundColor: 'rgba(203, 213, 224, 0.3)',
-                    tension: 0.3
-                }]
-            }
-        });
-    }
+  /* ================= TABLE ================= */
+  function renderTable() {
+    const table = document.getElementById('dataTable');
+    let html = '<thead><tr>';
+    headers.forEach(h => html += `<th>${h}</th>`);
+    html += '</tr></thead><tbody>';
 
-    init();
+    rows.slice(-10).reverse().forEach(r => {
+      html += '<tr>';
+      r.forEach((c, i) => {
+        html += `<td>${i === 0 ? c : formatValue(c)}</td>`;
+      });
+      html += '</tr>';
+    });
+
+    html += '</tbody>';
+    table.innerHTML = html;
+  }
+
+  /* ================= BIAS ================= */
+  function renderBias() {
+    const latest = rows[rows.length - 1];
+
+    const fiiCash = parseValue(latest[1]);
+    const diiCash = parseValue(latest[2]);
+    const fiiFut = parseValue(latest[3]);
+    const total = fiiCash + diiCash;
+
+    document.getElementById('latestFIICash').innerHTML = formatValue(fiiCash);
+    document.getElementById('biasFIICash').textContent = fiiCash < -500 ? 'Negative' : fiiCash > 500 ? 'Positive' : 'Neutral';
+
+    document.getElementById('latestFIIFutures').innerHTML = formatValue(fiiFut);
+    document.getElementById('biasFIIFutures').textContent = fiiFut < -100 ? 'Bearish' : fiiFut > 100 ? 'Bullish' : 'Neutral';
+
+    document.getElementById('latestTotalCash').innerHTML = formatValue(total);
+    document.getElementById('biasTotalCash').textContent = total > 0 ? 'Supportive' : 'Cautious';
+  }
+
+  init();
 </script>
+
 </body>
 </html>
