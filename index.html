@@ -3,325 +3,174 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>FII/DII Pro Market Analysis Dashboard</title>
-
-  <!-- Chart.js -->
+  <title>Institutional Alpha: Pro Dashboard Fixed</title>
   <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
-
   <style>
-    body {
-      font-family: 'Inter', 'Segoe UI', sans-serif;
-      margin: 0;
-      padding: 20px;
-      background-color: #f0f2f5;
-      color: #1a202c;
-    }
-
-    .container {
-      max-width: 1400px;
-      margin: auto;
-      background: #ffffff;
-      padding: 30px;
-      border-radius: 14px;
-      box-shadow: 0 6px 20px rgba(0, 0, 0, 0.08);
-    }
-
-    h1 {
-      text-align: center;
-      color: #1e3a8a;
-      margin-bottom: 10px;
-    }
-
-    h2 {
-      color: #2563eb;
-      margin-top: 30px;
-      border-bottom: 2px solid #e5e7eb;
-      padding-bottom: 6px;
-    }
-
-    .grid {
-      display: grid;
-      grid-template-columns: 1fr 1fr;
-      gap: 20px;
-      margin-top: 20px;
-    }
-
-    .card {
-      border: 1px solid #e5e7eb;
-      padding: 16px;
-      border-radius: 12px;
-      background: #ffffff;
-    }
-
-    canvas {
-      max-height: 360px;
-    }
-
-    .indicator-box {
-      text-align: center;
-      padding: 18px;
-      margin: 20px 0;
-      border-radius: 10px;
-      font-size: 1.2em;
-      font-weight: bold;
-    }
-
-    .buying-exhaustion {
-      background: #fff5f5;
-      color: #c53030;
-      border: 2px solid #feb2b2;
-    }
-
-    .selling-exhaustion {
-      background: #f0fff4;
-      color: #2f855a;
-      border: 2px solid #9ae6b4;
-    }
-
-    .neutral-box {
-      background: #edf2f7;
-      color: #4a5568;
-    }
-
-    .positive { color: #16a34a; font-weight: bold; }
-    .negative { color: #dc2626; font-weight: bold; }
-    .neutral { color: #6b7280; }
-
-    table {
-      width: 100%;
-      border-collapse: collapse;
-      margin-top: 15px;
-      font-size: 0.9em;
-    }
-
-    th, td {
-      border: 1px solid #e5e7eb;
-      padding: 10px;
-      text-align: right;
-    }
-
-    th {
-      background: #eff6ff;
-      color: #1e3a8a;
-      text-align: center;
-    }
-
-    tr:nth-child(even) {
-      background: #f9fafb;
-    }
-
-    #lastUpdated {
-      font-weight: bold;
-      color: #059669;
-    }
-
-    @media (max-width: 900px) {
-      .grid { grid-template-columns: 1fr; }
-    }
+    :root { --bull: #10b981; --bear: #ef4444; --neutral: #64748b; --bg: #f8fafc; }
+    body { font-family: 'Inter', system-ui, sans-serif; margin: 0; padding: 20px; background: var(--bg); color: #1e293b; }
+    .container { max-width: 1400px; margin: auto; background: #fff; padding: 30px; border-radius: 16px; box-shadow: 0 10px 25px rgba(0,0,0,0.05); }
+    .header { display: flex; justify-content: space-between; align-items: center; border-bottom: 2px solid #f1f5f9; padding-bottom: 15px; margin-bottom: 25px; }
+    .indicator-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); gap: 15px; margin-bottom: 25px; }
+    .signal-card { padding: 20px; border-radius: 12px; text-align: center; font-weight: bold; border: 1px solid #e2e8f0; font-size: 1.1rem; display: flex; flex-direction: column; justify-content: center; height: 80px; }
+    .grid { display: grid; grid-template-columns: 1fr 1fr; gap: 20px; }
+    .card { border: 1px solid #e2e8f0; padding: 20px; border-radius: 12px; background: #fff; margin-bottom: 20px; }
+    .bull-bg { background: #dcfce7; color: #166534; border-color: #bbf7d0; }
+    .bear-bg { background: #fee2e2; color: #991b1b; border-color: #fecaca; }
+    .neutral-bg { background: #f1f5f9; color: #475569; border-color: #e2e8f0; }
+    .pos { color: var(--bull); font-weight: bold; } .neg { color: var(--bear); font-weight: bold; }
+    canvas { max-height: 350px; }
+    table { width: 100%; border-collapse: collapse; margin-top: 10px; font-size: 0.82em; }
+    th, td { border: 1px solid #e2e8f0; padding: 8px; text-align: right; }
+    th { background: #f8fafc; color: #64748b; text-transform: uppercase; font-size: 0.7rem; }
   </style>
 </head>
 <body>
 
 <div class="container">
-  <h1>FII/DII Pro Market Analysis Dashboard</h1>
-  <p style="text-align:center">Last Updated: <span id="lastUpdated">Loading...</span></p>
-
-  <!-- Momentum Indicator -->
-  <div id="momentumIndicator" class="indicator-box neutral-box">
-    Analyzing Market Momentum...
+  <div class="header">
+    <h1>Market Intelligence Dashboard</h1>
+    <div>Nifty: <span id="niftyVal" style="font-weight:bold">...</span> | Updated: <span id="lastUpdate">...</span></div>
   </div>
 
-  <!-- Charts -->
+  <div class="indicator-grid">
+    <div id="divergenceBox" class="signal-card neutral-bg">Divergence: Analyzing...</div>
+    <div id="pcrBox" class="signal-card neutral-bg">PCR Sentiment: Analyzing...</div>
+    <div id="momentumBox" class="signal-card neutral-bg">Momentum: Analyzing...</div>
+  </div>
+
+  <div class="card" style="background-color: #f8fafc; border-left: 5px solid #2563eb; margin-bottom: 25px;">
+      <h3 style="margin-top: 0; color: #1e3a8a; font-size: 1.1rem;">📝 How to Read This Dashboard</h3>
+      <ul style="line-height: 1.6; font-size: 0.95rem; padding-left: 20px;">
+          <li><strong>Divergence Signal:</strong> If Nifty is rising but FIIs are selling more than -1,000 Cr, the box turns <span style="color: #16a34a; font-weight: bold;">Green</span>. This signals a strong bottom absorbed by DIIs.</li>
+          <li><strong>PCR Status:</strong> A Put-Call Ratio below <strong>0.7</strong> flags an <span style="color: #16a34a; font-weight: bold;">Oversold</span> market. Expect a sharp bounce.</li>
+          <li><strong>Momentum Signal:</strong> Tracks <strong>Selling Exhaustion</strong>. If selling slows vs. yesterday, it's the first sign of reversal.</li>
+      </ul>
+  </div>
+
   <div class="grid">
-    <div class="card">
-      <h2>Daily Cash Flow (FII vs DII)</h2>
-      <canvas id="dailyCashChart"></canvas>
-    </div>
-
-    <div class="card">
-      <h2>Cumulative FII Flow (Big Picture)</h2>
-      <canvas id="cumulativeChart"></canvas>
-    </div>
+    <div class="card"><h2>Price vs Institutional Flow</h2><canvas id="priceFlowChart"></canvas></div>
+    <div class="card"><h2>Cumulative FII Flow (Trend)</h2><canvas id="cumChart"></canvas></div>
   </div>
 
-  <!-- Table -->
-  <div class="card" style="margin-top:30px;">
-    <h2>Daily Institutional Activity (Last 10 Days)</h2>
-    <table id="dataTable">
-      <tr><td class="neutral" colspan="7">Loading data...</td></tr>
-    </table>
-  </div>
-
-  <!-- Bias Analysis -->
-  <div class="card" style="margin-top:30px;">
-    <h2>Next Day Bias Indicators (Latest Data)</h2>
-    <table>
-      <tr>
-        <th>Metric</th>
-        <th>Latest Value (Cr)</th>
-        <th>Interpretation</th>
-      </tr>
-      <tr>
-        <td>FII Net Cash</td>
-        <td id="latestFIICash" class="neutral">-</td>
-        <td id="biasFIICash" class="neutral">-</td>
-      </tr>
-      <tr>
-        <td>FII Net Index Futures</td>
-        <td id="latestFIIFutures" class="neutral">-</td>
-        <td id="biasFIIFutures" class="neutral">-</td>
-      </tr>
-      <tr>
-        <td>Total Institutional Cash (FII + DII)</td>
-        <td id="latestTotalCash" class="neutral">-</td>
-        <td id="biasTotalCash" class="neutral">-</td>
-      </tr>
-    </table>
+  <div class="card" style="overflow-x:auto;">
+    <h2>Daily Institutional Activity (Full Data)</h2>
+    <table id="dataTable"><tr><td style="text-align:center">Loading Table Data...</td></tr></table>
   </div>
 </div>
 
 <script>
-  /* ================= CONFIG ================= */
-  const SPREADSHEET_ID = '12e5NUDJQXnyB2V27WynpgGw2Gwg4oxqefc8jVOyy3aM';
-  const API_KEY = 'AIzaSyBYXp1ILH81N2lo_oPn6mGvju0hpyWTHFI';
-  const RANGE = 'FII-DII!A1:G100';
+  const CONFIG = {
+    id: '12e5NUDJQXnyB2V27WynpgGw2Gwg4oxqefc8jVOyy3aM',
+    key: 'AIzaSyBYXp1ILH81N2lo_oPn6mGvju0hpyWTHFI',
+    range: 'FII-DII!A1:I100' 
+  };
 
-  const URL = `https://sheets.googleapis.com/v4/spreadsheets/${SPREADSHEET_ID}/values/${RANGE}?key=${API_KEY}`;
+  let charts = {};
 
-  let headers = [];
-  let rows = [];
-  let dailyChart, cumulativeChart;
-
-  /* ================= HELPERS ================= */
-  function parseValue(v) {
-    if (typeof v === 'string') return parseFloat(v.replace(/,/g, '')) || 0;
-    return v || 0;
-  }
-
-  function formatValue(v) {
-    const n = parseValue(v);
-    const cls = n > 0 ? 'positive' : n < 0 ? 'negative' : 'neutral';
-    return `<span class="${cls}">${n.toLocaleString('en-IN', {maximumFractionDigits:2})} Cr</span>`;
-  }
-
-  /* ================= MAIN ================= */
   async function init() {
-    const res = await fetch(URL);
-    const data = await res.json();
+    try {
+      const url = `https://sheets.googleapis.com/v4/spreadsheets/${CONFIG.id}/values/${CONFIG.range}?key=${CONFIG.key}`;
+      const res = await fetch(url);
+      const d = await res.json();
+      
+      if (!d.values) return;
+      const headers = d.values[0];
+      const rows = d.values.slice(1).filter(r => r[0]);
+      
+      // MAPPING EVERY COLUMN (A to I)
+      const data = rows.map(r => ({
+        date: r[0],
+        fiiCash: parseFloat(r[1]?.replace(/,/g,'')) || 0,
+        diiCash: parseFloat(r[2]?.replace(/,/g,'')) || 0,
+        fiiFut: parseFloat(r[3]?.replace(/,/g,'')) || 0,
+        fiiOpt: r[4] || '-',      // Column E
+        fiiStkFut: r[5] || '-',   // Column F
+        fiiStkOpt: r[6] || '-',   // Column G
+        price: parseFloat(r[7]?.replace(/,/g,'')) || 0, // Column H
+        pcr: parseFloat(r[8]?.replace(/,/g,'')) || 0    // Column I
+      }));
 
-    headers = data.values[0];
-    rows = data.values.slice(1).filter(r => r[0]);
-
-    const latestDate = rows[rows.length - 1][0];
-    document.getElementById('lastUpdated').textContent = latestDate;
-
-    renderMomentum();
-    renderCharts();
-    renderTable();
-    renderBias();
+      updateUI(data, headers);
+    } catch (e) { console.error(e); }
   }
 
-  /* ================= MOMENTUM ================= */
-  function renderMomentum() {
-    const indicator = document.getElementById('momentumIndicator');
-    const last3 = rows.slice(-3).map(r => parseValue(r[1]));
+  function updateUI(data, headers) {
+    const latest = data[data.length - 1];
+    const prev = data[data.length - 2];
+    document.getElementById('niftyVal').innerText = latest.price;
+    document.getElementById('lastUpdate').innerText = latest.date;
 
-    if (last3.length < 2) return;
-
-    const latest = last3[last3.length - 1];
-    const prev = last3[last3.length - 2];
-
-    if (latest < 0 && latest > prev) {
-      indicator.className = 'indicator-box selling-exhaustion';
-      indicator.textContent = 'SIGNAL: SELLING EXHAUSTION (Possible Bottom)';
-    } else if (latest > 0 && latest < prev) {
-      indicator.className = 'indicator-box buying-exhaustion';
-      indicator.textContent = 'SIGNAL: BUYING EXHAUSTION (Possible Top)';
+    // 1. Momentum logic
+    const momBox = document.getElementById('momentumBox');
+    if (latest.fiiCash < 0 && latest.fiiCash > prev.fiiCash) {
+      momBox.className = "signal-card bull-bg"; momBox.innerText = "SELLING EXHAUSTION";
     } else {
-      indicator.className = 'indicator-box neutral-box';
-      indicator.textContent = latest > 0 ? 'BIAS: BULLISH MOMENTUM' : 'BIAS: BEARISH PRESSURE';
+      momBox.className = "signal-card neutral-bg"; momBox.innerText = latest.fiiCash > 0 ? "BULLISH FLOW" : "BEARISH PRESSURE";
     }
+
+    // 2. Divergence logic
+    const divBox = document.getElementById('divergenceBox');
+    const pDiff = latest.price - prev.price;
+    if (pDiff > 0 && latest.fiiCash < -1000) {
+      divBox.className = "signal-card bull-bg"; divBox.innerText = "BULLISH DIVERGENCE";
+    } else {
+      divBox.className = "signal-card neutral-bg"; divBox.innerText = "NO DIVERGENCE";
+    }
+
+    // 3. PCR Logic
+    const pcrBox = document.getElementById('pcrBox');
+    pcrBox.innerText = `PCR: ${latest.pcr}`;
+    if (latest.pcr < 0.7 && latest.pcr > 0) { pcrBox.className = "signal-card bull-bg"; pcrBox.innerText += " (OVERSOLD)"; }
+    else { pcrBox.className = "signal-card neutral-bg"; }
+
+    renderCharts(data);
+    renderTable(data, headers);
   }
 
-  /* ================= CHARTS ================= */
-  function renderCharts() {
-    const labels = rows.map(r => r[0]);
-    const fii = rows.map(r => parseValue(r[1]));
-    const dii = rows.map(r => parseValue(r[2]));
-
-    let cumulative = 0;
-    const cumulativeData = fii.map(v => (cumulative += v));
-
-    if (dailyChart) dailyChart.destroy();
-    if (cumulativeChart) cumulativeChart.destroy();
-
-    dailyChart = new Chart(document.getElementById('dailyCashChart'), {
-      type: 'bar',
+  function renderCharts(data) {
+    const labels = data.map(d => d.date);
+    const ctxFlow = document.getElementById('priceFlowChart').getContext('2d');
+    if (charts.flow) charts.flow.destroy();
+    charts.flow = new Chart(ctxFlow, {
       data: {
         labels,
         datasets: [
-          { label: 'FII Cash', data: fii, backgroundColor: '#f87171' },
-          { label: 'DII Cash', data: dii, backgroundColor: '#60a5fa' }
+          { type: 'line', label: 'Nifty', data: data.map(d => d.price), borderColor: '#6366f1', yAxisID: 'y2' },
+          { type: 'bar', label: 'Net Flow', data: data.map(d => d.fiiCash + d.diiCash), backgroundColor: '#cbd5e1', yAxisID: 'y1' }
         ]
-      }
+      },
+      options: { scales: { y1: { position: 'left' }, y2: { position: 'right', grid: { display: false } } } }
     });
 
-    cumulativeChart = new Chart(document.getElementById('cumulativeChart'), {
+    const ctxCum = document.getElementById('cumChart').getContext('2d');
+    let sum = 0;
+    if (charts.cum) charts.cum.destroy();
+    charts.cum = new Chart(ctxCum, {
       type: 'line',
-      data: {
-        labels,
-        datasets: [{
-          label: 'Cumulative FII Flow',
-          data: cumulativeData,
-          borderColor: '#374151',
-          backgroundColor: 'rgba(203,213,225,0.4)',
-          fill: true,
-          tension: 0.3
-        }]
-      }
+      data: { labels, datasets: [{ label: 'Cumulative FII', data: data.map(d => sum += d.fiiCash), borderColor: '#475569', fill: true }] }
     });
   }
 
-  /* ================= TABLE ================= */
-  function renderTable() {
+  function renderTable(data, headers) {
     const table = document.getElementById('dataTable');
-    let html = '<thead><tr>';
-    headers.forEach(h => html += `<th>${h}</th>`);
-    html += '</tr></thead><tbody>';
-
-    rows.slice(-10).reverse().forEach(r => {
-      html += '<tr>';
-      r.forEach((c, i) => {
-        html += `<td>${i === 0 ? c : formatValue(c)}</td>`;
-      });
-      html += '</tr>';
+    let html = '<thead><tr>' + headers.map(h => `<th>${h}</th>`).join('') + '</tr></thead><tbody>';
+    data.slice(-10).reverse().forEach(r => {
+      html += `<tr>
+        <td>${r.date}</td>
+        <td class="${r.fiiCash < 0 ? 'neg' : 'pos'}">${r.fiiCash.toLocaleString()}</td>
+        <td class="pos">${r.diiCash.toLocaleString()}</td>
+        <td class="${r.fiiFut < 0 ? 'neg' : 'pos'}">${r.fiiFut.toLocaleString()}</td>
+        <td>${r.fiiOpt}</td>
+        <td>${r.fiiStkFut}</td>
+        <td>${r.fiiStkOpt}</td>
+        <td><b>${r.price}</b></td>
+        <td><b>${r.pcr}</b></td>
+      </tr>`;
     });
-
-    html += '</tbody>';
-    table.innerHTML = html;
-  }
-
-  /* ================= BIAS ================= */
-  function renderBias() {
-    const latest = rows[rows.length - 1];
-
-    const fiiCash = parseValue(latest[1]);
-    const diiCash = parseValue(latest[2]);
-    const fiiFut = parseValue(latest[3]);
-    const total = fiiCash + diiCash;
-
-    document.getElementById('latestFIICash').innerHTML = formatValue(fiiCash);
-    document.getElementById('biasFIICash').textContent = fiiCash < -500 ? 'Negative' : fiiCash > 500 ? 'Positive' : 'Neutral';
-
-    document.getElementById('latestFIIFutures').innerHTML = formatValue(fiiFut);
-    document.getElementById('biasFIIFutures').textContent = fiiFut < -100 ? 'Bearish' : fiiFut > 100 ? 'Bullish' : 'Neutral';
-
-    document.getElementById('latestTotalCash').innerHTML = formatValue(total);
-    document.getElementById('biasTotalCash').textContent = total > 0 ? 'Supportive' : 'Cautious';
+    table.innerHTML = html + '</tbody>';
   }
 
   init();
 </script>
-
 </body>
 </html>
