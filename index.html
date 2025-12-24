@@ -3,174 +3,702 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Institutional Alpha: Pro Dashboard Fixed</title>
+  <title>Institutional Alpha: Pro Dashboard</title>
   <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
   <style>
-    :root { --bull: #10b981; --bear: #ef4444; --neutral: #64748b; --bg: #f8fafc; }
-    body { font-family: 'Inter', system-ui, sans-serif; margin: 0; padding: 20px; background: var(--bg); color: #1e293b; }
-    .container { max-width: 1400px; margin: auto; background: #fff; padding: 30px; border-radius: 16px; box-shadow: 0 10px 25px rgba(0,0,0,0.05); }
-    .header { display: flex; justify-content: space-between; align-items: center; border-bottom: 2px solid #f1f5f9; padding-bottom: 15px; margin-bottom: 25px; }
-    .indicator-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); gap: 15px; margin-bottom: 25px; }
-    .signal-card { padding: 20px; border-radius: 12px; text-align: center; font-weight: bold; border: 1px solid #e2e8f0; font-size: 1.1rem; display: flex; flex-direction: column; justify-content: center; height: 80px; }
-    .grid { display: grid; grid-template-columns: 1fr 1fr; gap: 20px; }
-    .card { border: 1px solid #e2e8f0; padding: 20px; border-radius: 12px; background: #fff; margin-bottom: 20px; }
-    .bull-bg { background: #dcfce7; color: #166534; border-color: #bbf7d0; }
-    .bear-bg { background: #fee2e2; color: #991b1b; border-color: #fecaca; }
-    .neutral-bg { background: #f1f5f9; color: #475569; border-color: #e2e8f0; }
-    .pos { color: var(--bull); font-weight: bold; } .neg { color: var(--bear); font-weight: bold; }
-    canvas { max-height: 350px; }
-    table { width: 100%; border-collapse: collapse; margin-top: 10px; font-size: 0.82em; }
-    th, td { border: 1px solid #e2e8f0; padding: 8px; text-align: right; }
-    th { background: #f8fafc; color: #64748b; text-transform: uppercase; font-size: 0.7rem; }
+    :root {
+      --bull: #10b981;
+      --bear: #ef4444;
+      --neutral: #64748b;
+      --bg: #0f172a;
+      --bg-card: #020617;
+      --border-subtle: #1e293b;
+      --accent: #2563eb;
+      --text: #e5e7eb;
+      --muted: #94a3b8;
+    }
+
+    * {
+      box-sizing: border-box;
+    }
+
+    body {
+      font-family: system-ui, -apple-system, BlinkMacSystemFont, "Inter", sans-serif;
+      margin: 0;
+      padding: 16px;
+      background: radial-gradient(circle at top, #1e293b 0, #020617 45%, #000 100%);
+      color: var(--text);
+    }
+
+    .container {
+      max-width: 1320px;
+      margin: 0 auto;
+      background: rgba(15, 23, 42, 0.96);
+      padding: 20px 16px 24px;
+      border-radius: 18px;
+      border: 1px solid rgba(148, 163, 184, 0.25);
+      box-shadow:
+        0 24px 70px rgba(15, 23, 42, 0.75),
+        0 0 0 1px rgba(15, 23, 42, 0.8);
+      backdrop-filter: blur(18px);
+    }
+
+    @media (min-width: 768px) {
+      .container {
+        padding: 24px 24px 28px;
+      }
+    }
+
+    .header {
+      display: flex;
+      flex-direction: column;
+      gap: 8px;
+      justify-content: space-between;
+      align-items: flex-start;
+      border-bottom: 1px solid rgba(51, 65, 85, 0.8);
+      padding-bottom: 14px;
+      margin-bottom: 20px;
+    }
+
+    @media (min-width: 640px) {
+      .header {
+        flex-direction: row;
+        align-items: center;
+      }
+    }
+
+    .header-title {
+      display: flex;
+      flex-direction: column;
+      gap: 4px;
+    }
+
+    .header h1 {
+      margin: 0;
+      font-size: 1.35rem;
+      letter-spacing: 0.03em;
+    }
+
+    .header-sub {
+      font-size: 0.78rem;
+      color: var(--muted);
+      text-transform: uppercase;
+      letter-spacing: 0.16em;
+    }
+
+    .header-meta {
+      font-size: 0.82rem;
+      color: var(--muted);
+      display: flex;
+      flex-wrap: wrap;
+      gap: 4px 10px;
+      align-items: center;
+    }
+
+    .pill {
+      border-radius: 999px;
+      padding: 3px 10px;
+      border: 1px solid rgba(148, 163, 184, 0.35);
+      background: radial-gradient(circle at top left, rgba(37, 99, 235, 0.1), transparent 55%);
+      font-size: 0.78rem;
+    }
+
+    .indicator-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(210px, 1fr));
+      gap: 10px;
+      margin-bottom: 18px;
+    }
+
+    @media (min-width: 768px) {
+      .indicator-grid {
+        gap: 14px;
+      }
+    }
+
+    .signal-card {
+      padding: 12px 14px;
+      border-radius: 12px;
+      text-align: left;
+      border: 1px solid var(--border-subtle);
+      font-size: 0.9rem;
+      display: flex;
+      flex-direction: column;
+      justify-content: center;
+      min-height: 70px;
+      position: relative;
+      overflow: hidden;
+    }
+
+    .signal-label {
+      font-size: 0.72rem;
+      text-transform: uppercase;
+      letter-spacing: 0.14em;
+      color: var(--muted);
+      margin-bottom: 4px;
+    }
+
+    .signal-value {
+      font-weight: 600;
+      font-size: 0.98rem;
+    }
+
+    .bull-bg {
+      background: radial-gradient(circle at top left, rgba(22, 163, 74, 0.22), rgba(15, 23, 42, 0.98));
+      border-color: rgba(34, 197, 94, 0.45);
+      color: #bbf7d0;
+    }
+
+    .bear-bg {
+      background: radial-gradient(circle at top left, rgba(220, 38, 38, 0.3), rgba(15, 23, 42, 0.98));
+      border-color: rgba(248, 113, 113, 0.6);
+      color: #fecaca;
+    }
+
+    .neutral-bg {
+      background: radial-gradient(circle at top left, rgba(148, 163, 184, 0.22), rgba(15, 23, 42, 0.98));
+      border-color: rgba(148, 163, 184, 0.4);
+      color: var(--text);
+    }
+
+    .card {
+      border: 1px solid var(--border-subtle);
+      padding: 16px 14px;
+      border-radius: 14px;
+      background: radial-gradient(circle at top, rgba(15, 23, 42, 0.92), #020617);
+      margin-bottom: 16px;
+      position: relative;
+      overflow: hidden;
+    }
+
+    @media (min-width: 768px) {
+      .card {
+        padding: 18px 16px;
+      }
+    }
+
+    .card h2 {
+      margin: 0;
+      margin-bottom: 6px;
+      font-size: 1.02rem;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 8px;
+    }
+
+    .card-sub {
+      font-size: 0.78rem;
+      color: var(--muted);
+      margin-bottom: 8px;
+    }
+
+    .card-accent {
+      position: absolute;
+      inset: 0;
+      pointer-events: none;
+      background:
+        radial-gradient(circle at top left, rgba(37, 99, 235, 0.08), transparent 55%),
+        radial-gradient(circle at bottom right, rgba(15, 23, 42, 0.7), transparent 45%);
+      opacity: 0.95;
+      mix-blend-mode: screen;
+    }
+
+    .card-inner {
+      position: relative;
+      z-index: 1;
+    }
+
+    .info-card {
+      background: linear-gradient(135deg, rgba(37, 99, 235, 0.15), rgba(15, 23, 42, 0.98));
+      border-left: 3px solid var(--accent);
+      margin-bottom: 18px;
+    }
+
+    .info-card h3 {
+      margin-top: 0;
+      margin-bottom: 6px;
+      font-size: 0.98rem;
+      display: flex;
+      align-items: center;
+      gap: 6px;
+    }
+
+    .info-card ul {
+      margin: 0;
+      padding-left: 18px;
+      font-size: 0.86rem;
+      line-height: 1.4;
+      color: var(--muted);
+    }
+
+    .info-card li {
+      margin-bottom: 4px;
+    }
+
+    .grid {
+      display: grid;
+      grid-template-columns: 1fr;
+      gap: 14px;
+    }
+
+    @media (min-width: 900px) {
+      .grid {
+        grid-template-columns: minmax(0, 1.2fr) minmax(0, 1fr);
+      }
+    }
+
+    canvas {
+      max-height: 320px;
+      width: 100%;
+    }
+
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      margin-top: 8px;
+      font-size: 0.78em;
+      min-width: 720px;
+      color: var(--text);
+    }
+
+    th,
+    td {
+      border: 1px solid rgba(51, 65, 85, 0.9);
+      padding: 6px 8px;
+      text-align: right;
+      white-space: nowrap;
+    }
+
+    th {
+      background: rgba(15, 23, 42, 0.92);
+      color: var(--muted);
+      text-transform: uppercase;
+      font-size: 0.7rem;
+      letter-spacing: 0.09em;
+    }
+
+    tr:nth-child(even) td {
+      background: rgba(15, 23, 42, 0.9);
+    }
+
+    tr:nth-child(odd) td {
+      background: rgba(15, 23, 42, 0.8);
+    }
+
+    td:first-child,
+    th:first-child {
+      text-align: left;
+    }
+
+    .pos {
+      color: var(--bull);
+      font-weight: 600;
+    }
+
+    .neg {
+      color: var(--bear);
+      font-weight: 600;
+    }
+
+    .price-cell {
+      font-weight: 600;
+    }
+
+    .pcr-cell {
+      font-weight: 600;
+      color: #fbbf24;
+    }
+
+    .table-wrapper {
+      overflow-x: auto;
+      -webkit-overflow-scrolling: touch;
+      border-radius: 10px;
+      border: 1px solid rgba(51, 65, 85, 0.9);
+    }
+
+    .badge {
+      font-size: 0.72rem;
+      padding: 2px 8px;
+      border-radius: 999px;
+      border: 1px solid rgba(148, 163, 184, 0.5);
+      color: var(--muted);
+      background: rgba(15, 23, 42, 0.95);
+    }
+
+    .badge-soft {
+      border-color: rgba(56, 189, 248, 0.7);
+      color: #7dd3fc;
+    }
+
+    .signal-tag {
+      font-size: 0.74rem;
+      color: var(--muted);
+    }
+
+    @media (max-width: 480px) {
+      .header h1 {
+        font-size: 1.2rem;
+      }
+      .signal-card {
+        min-height: 66px;
+      }
+    }
   </style>
 </head>
 <body>
+  <div class="container">
+    <header class="header">
+      <div class="header-title">
+        <span class="header-sub">Institutional Alpha</span>
+        <h1>Market Intelligence Dashboard</h1>
+      </div>
+      <div class="header-meta">
+        <span class="pill">Nifty: <span id="niftyVal" style="font-weight:600">...</span></span>
+        <span>Last update: <span id="lastUpdate">...</span></span>
+      </div>
+    </header>
 
-<div class="container">
-  <div class="header">
-    <h1>Market Intelligence Dashboard</h1>
-    <div>Nifty: <span id="niftyVal" style="font-weight:bold">...</span> | Updated: <span id="lastUpdate">...</span></div>
+    <section class="indicator-grid">
+      <div id="divergenceBox" class="signal-card neutral-bg">
+        <div class="signal-label">Divergence</div>
+        <div class="signal-value">Analyzing...</div>
+        <div class="signal-tag">Price vs FII cash flow</div>
+      </div>
+      <div id="pcrBox" class="signal-card neutral-bg">
+        <div class="signal-label">PCR Sentiment</div>
+        <div class="signal-value">Analyzing...</div>
+        <div class="signal-tag">Index options positioning</div>
+      </div>
+      <div id="momentumBox" class="signal-card neutral-bg">
+        <div class="signal-label">Flow Momentum</div>
+        <div class="signal-value">Analyzing...</div>
+        <div class="signal-tag">Selling exhaustion tracker</div>
+      </div>
+    </section>
+
+    <section class="card info-card">
+      <div class="card-inner">
+        <h3>How to read this dashboard</h3>
+        <ul>
+          <li><b>Divergence:</b> Nifty up with FII cash &lt; -1,000 Cr flags a potential bottom being absorbed by DIIs.</li>
+          <li><b>PCR:</b> Put-Call Ratio below <b>0.7</b> highlights an oversold zone with high bounce probability.</li>
+          <li><b>Momentum:</b> Slower selling vs yesterday is the earliest sign of reversal risk building up.</li>
+        </ul>
+      </div>
+    </section>
+
+    <section class="grid">
+      <article class="card">
+        <div class="card-accent"></div>
+        <div class="card-inner">
+          <h2>
+            Price vs Institutional Flow
+            <span class="badge badge-soft">Cash + DII vs Nifty</span>
+          </h2>
+          <p class="card-sub">Track how combined FII + DII cash moves alongside Nifty close.</p>
+          <canvas id="priceFlowChart"></canvas>
+        </div>
+      </article>
+
+      <article class="card">
+        <div class="card-accent"></div>
+        <div class="card-inner">
+          <h2>
+            Cumulative FII Flow
+            <span class="badge">Trend curve</span>
+          </h2>
+          <p class="card-sub">Rolling path of daily FII cash flows to gauge regime shifts.</p>
+          <canvas id="cumChart"></canvas>
+        </div>
+      </article>
+    </section>
+
+    <section class="card">
+      <div class="card-inner">
+        <h2>
+          Daily Institutional Activity
+          <span class="badge">Last 10 sessions</span>
+        </h2>
+        <p class="card-sub">Detailed cash, index, and stock derivatives flow with Nifty and PCR.</p>
+        <div class="table-wrapper">
+          <table id="dataTable">
+            <tr><td style="text-align:center">Loading table data...</td></tr>
+          </table>
+        </div>
+      </div>
+    </section>
   </div>
 
-  <div class="indicator-grid">
-    <div id="divergenceBox" class="signal-card neutral-bg">Divergence: Analyzing...</div>
-    <div id="pcrBox" class="signal-card neutral-bg">PCR Sentiment: Analyzing...</div>
-    <div id="momentumBox" class="signal-card neutral-bg">Momentum: Analyzing...</div>
-  </div>
+  <script>
+    const CONFIG = {
+      id: '12e5NUDJQXnyB2V27WynpgGw2Gwg4oxqefc8jVOyy3aM',
+      key: 'AIzaSyBYXp1ILH81N2lo_oPn6mGvju0hpyWTHFI',
+      range: 'FII-DII!A1:I100'
+    };
 
-  <div class="card" style="background-color: #f8fafc; border-left: 5px solid #2563eb; margin-bottom: 25px;">
-      <h3 style="margin-top: 0; color: #1e3a8a; font-size: 1.1rem;">📝 How to Read This Dashboard</h3>
-      <ul style="line-height: 1.6; font-size: 0.95rem; padding-left: 20px;">
-          <li><strong>Divergence Signal:</strong> If Nifty is rising but FIIs are selling more than -1,000 Cr, the box turns <span style="color: #16a34a; font-weight: bold;">Green</span>. This signals a strong bottom absorbed by DIIs.</li>
-          <li><strong>PCR Status:</strong> A Put-Call Ratio below <strong>0.7</strong> flags an <span style="color: #16a34a; font-weight: bold;">Oversold</span> market. Expect a sharp bounce.</li>
-          <li><strong>Momentum Signal:</strong> Tracks <strong>Selling Exhaustion</strong>. If selling slows vs. yesterday, it's the first sign of reversal.</li>
-      </ul>
-  </div>
+    let charts = {};
 
-  <div class="grid">
-    <div class="card"><h2>Price vs Institutional Flow</h2><canvas id="priceFlowChart"></canvas></div>
-    <div class="card"><h2>Cumulative FII Flow (Trend)</h2><canvas id="cumChart"></canvas></div>
-  </div>
+    async function init() {
+      try {
+        const url = `https://sheets.googleapis.com/v4/spreadsheets/${CONFIG.id}/values/${CONFIG.range}?key=${CONFIG.key}`;
+        const res = await fetch(url);
+        const d = await res.json();
 
-  <div class="card" style="overflow-x:auto;">
-    <h2>Daily Institutional Activity (Full Data)</h2>
-    <table id="dataTable"><tr><td style="text-align:center">Loading Table Data...</td></tr></table>
-  </div>
-</div>
+        if (!d.values) return;
 
-<script>
-  const CONFIG = {
-    id: '12e5NUDJQXnyB2V27WynpgGw2Gwg4oxqefc8jVOyy3aM',
-    key: 'AIzaSyBYXp1ILH81N2lo_oPn6mGvju0hpyWTHFI',
-    range: 'FII-DII!A1:I100' 
-  };
+        const headers = d.values[0];
+        const rows = d.values.slice(1).filter(r => r[0]);
 
-  let charts = {};
+        const data = rows.map(r => ({
+          date: r[0],
+          fiiCash: parseFloat(r[1]?.replace(/,/g, '')) || 0,
+          diiCash: parseFloat(r[2]?.replace(/,/g, '')) || 0,
+          fiiFut: parseFloat(r[3]?.replace(/,/g, '')) || 0,
+          fiiOpt: r[4] || '-',
+          fiiStkFut: r[5] || '-',
+          fiiStkOpt: r[6] || '-',
+          price: parseFloat(r[7]?.replace(/,/g, '')) || 0,
+          pcr: parseFloat(r[8]?.replace(/,/g, '')) || 0
+        }));
 
-  async function init() {
-    try {
-      const url = `https://sheets.googleapis.com/v4/spreadsheets/${CONFIG.id}/values/${CONFIG.range}?key=${CONFIG.key}`;
-      const res = await fetch(url);
-      const d = await res.json();
-      
-      if (!d.values) return;
-      const headers = d.values[0];
-      const rows = d.values.slice(1).filter(r => r[0]);
-      
-      // MAPPING EVERY COLUMN (A to I)
-      const data = rows.map(r => ({
-        date: r[0],
-        fiiCash: parseFloat(r[1]?.replace(/,/g,'')) || 0,
-        diiCash: parseFloat(r[2]?.replace(/,/g,'')) || 0,
-        fiiFut: parseFloat(r[3]?.replace(/,/g,'')) || 0,
-        fiiOpt: r[4] || '-',      // Column E
-        fiiStkFut: r[5] || '-',   // Column F
-        fiiStkOpt: r[6] || '-',   // Column G
-        price: parseFloat(r[7]?.replace(/,/g,'')) || 0, // Column H
-        pcr: parseFloat(r[8]?.replace(/,/g,'')) || 0    // Column I
-      }));
+        if (data.length < 2) return;
 
-      updateUI(data, headers);
-    } catch (e) { console.error(e); }
-  }
-
-  function updateUI(data, headers) {
-    const latest = data[data.length - 1];
-    const prev = data[data.length - 2];
-    document.getElementById('niftyVal').innerText = latest.price;
-    document.getElementById('lastUpdate').innerText = latest.date;
-
-    // 1. Momentum logic
-    const momBox = document.getElementById('momentumBox');
-    if (latest.fiiCash < 0 && latest.fiiCash > prev.fiiCash) {
-      momBox.className = "signal-card bull-bg"; momBox.innerText = "SELLING EXHAUSTION";
-    } else {
-      momBox.className = "signal-card neutral-bg"; momBox.innerText = latest.fiiCash > 0 ? "BULLISH FLOW" : "BEARISH PRESSURE";
+        updateUI(data, headers);
+      } catch (e) {
+        console.error(e);
+      }
     }
 
-    // 2. Divergence logic
-    const divBox = document.getElementById('divergenceBox');
-    const pDiff = latest.price - prev.price;
-    if (pDiff > 0 && latest.fiiCash < -1000) {
-      divBox.className = "signal-card bull-bg"; divBox.innerText = "BULLISH DIVERGENCE";
-    } else {
-      divBox.className = "signal-card neutral-bg"; divBox.innerText = "NO DIVERGENCE";
+    function updateUI(data, headers) {
+      const latest = data[data.length - 1];
+      const prev = data[data.length - 2];
+
+      document.getElementById('niftyVal').innerText = latest.price;
+      document.getElementById('lastUpdate').innerText = latest.date;
+
+      const momBox = document.getElementById('momentumBox');
+      const momValue = momBox.querySelector('.signal-value');
+      if (latest.fiiCash < 0 && latest.fiiCash > prev.fiiCash) {
+        momBox.className = "signal-card bull-bg";
+        momValue.textContent = "Selling Exhaustion";
+      } else {
+        momBox.className = "signal-card neutral-bg";
+        momValue.textContent = latest.fiiCash > 0 ? "Bullish Flow" : "Bearish Pressure";
+      }
+
+      const divBox = document.getElementById('divergenceBox');
+      const divValue = divBox.querySelector('.signal-value');
+      const pDiff = latest.price - prev.price;
+      if (pDiff > 0 && latest.fiiCash < -1000) {
+        divBox.className = "signal-card bull-bg";
+        divValue.textContent = "Bullish Divergence";
+      } else {
+        divBox.className = "signal-card neutral-bg";
+        divValue.textContent = "No Clear Divergence";
+      }
+
+      const pcrBox = document.getElementById('pcrBox');
+      const pcrValue = pcrBox.querySelector('.signal-value');
+      pcrValue.textContent = `PCR: ${latest.pcr.toFixed(2)}`;
+      if (latest.pcr < 0.7 && latest.pcr > 0) {
+        pcrBox.className = "signal-card bull-bg";
+        pcrValue.textContent += " · Oversold";
+      } else {
+        pcrBox.className = "signal-card neutral-bg";
+      }
+
+      renderCharts(data);
+      renderTable(data, headers);
     }
 
-    // 3. PCR Logic
-    const pcrBox = document.getElementById('pcrBox');
-    pcrBox.innerText = `PCR: ${latest.pcr}`;
-    if (latest.pcr < 0.7 && latest.pcr > 0) { pcrBox.className = "signal-card bull-bg"; pcrBox.innerText += " (OVERSOLD)"; }
-    else { pcrBox.className = "signal-card neutral-bg"; }
+    function renderCharts(data) {
+      const labels = data.map(d => d.date);
 
-    renderCharts(data);
-    renderTable(data, headers);
-  }
+      const ctxFlow = document.getElementById('priceFlowChart').getContext('2d');
+      if (charts.flow) charts.flow.destroy();
 
-  function renderCharts(data) {
-    const labels = data.map(d => d.date);
-    const ctxFlow = document.getElementById('priceFlowChart').getContext('2d');
-    if (charts.flow) charts.flow.destroy();
-    charts.flow = new Chart(ctxFlow, {
-      data: {
-        labels,
-        datasets: [
-          { type: 'line', label: 'Nifty', data: data.map(d => d.price), borderColor: '#6366f1', yAxisID: 'y2' },
-          { type: 'bar', label: 'Net Flow', data: data.map(d => d.fiiCash + d.diiCash), backgroundColor: '#cbd5e1', yAxisID: 'y1' }
-        ]
-      },
-      options: { scales: { y1: { position: 'left' }, y2: { position: 'right', grid: { display: false } } } }
-    });
+      charts.flow = new Chart(ctxFlow, {
+        data: {
+          labels,
+          datasets: [
+            {
+              type: 'line',
+              label: 'Nifty',
+              data: data.map(d => d.price),
+              borderColor: '#38bdf8',
+              backgroundColor: 'rgba(56, 189, 248, 0.08)',
+              borderWidth: 2,
+              tension: 0.25,
+              yAxisID: 'y2',
+              pointRadius: 0
+            },
+            {
+              type: 'bar',
+              label: 'Net Cash (FII + DII)',
+              data: data.map(d => d.fiiCash + d.diiCash),
+              backgroundColor: function(ctx) {
+                const val = ctx.raw || 0;
+                return val >= 0 ? 'rgba(34, 197, 94, 0.55)' : 'rgba(248, 113, 113, 0.65)';
+              },
+              borderRadius: 3,
+              yAxisID: 'y1'
+            }
+          ]
+        },
+        options: {
+          responsive: true,
+          maintainAspectRatio: false,
+          plugins: {
+            legend: {
+              labels: {
+                color: '#e5e7eb',
+                boxWidth: 10,
+                font: { size: 10 }
+              }
+            },
+            tooltip: {
+              mode: 'index',
+              intersect: false,
+              backgroundColor: 'rgba(15, 23, 42, 0.95)',
+              borderColor: '#1e293b',
+              borderWidth: 1,
+              titleColor: '#e5e7eb',
+              bodyColor: '#e5e7eb',
+              padding: 8
+            }
+          },
+          scales: {
+            x: {
+              ticks: {
+                color: '#94a3b8',
+                maxRotation: 0,
+                autoSkip: true,
+                maxTicksLimit: 8
+              },
+              grid: {
+                display: false
+              }
+            },
+            y1: {
+              position: 'left',
+              ticks: {
+                color: '#94a3b8',
+                font: { size: 9 }
+              },
+              grid: {
+                color: 'rgba(30, 64, 175, 0.15)'
+              }
+            },
+            y2: {
+              position: 'right',
+              ticks: {
+                color: '#94a3b8',
+                font: { size: 9 }
+              },
+              grid: {
+                display: false
+              }
+            }
+          }
+        }
+      });
 
-    const ctxCum = document.getElementById('cumChart').getContext('2d');
-    let sum = 0;
-    if (charts.cum) charts.cum.destroy();
-    charts.cum = new Chart(ctxCum, {
-      type: 'line',
-      data: { labels, datasets: [{ label: 'Cumulative FII', data: data.map(d => sum += d.fiiCash), borderColor: '#475569', fill: true }] }
-    });
-  }
+      const ctxCum = document.getElementById('cumChart').getContext('2d');
+      if (charts.cum) charts.cum.destroy();
 
-  function renderTable(data, headers) {
-    const table = document.getElementById('dataTable');
-    let html = '<thead><tr>' + headers.map(h => `<th>${h}</th>`).join('') + '</tr></thead><tbody>';
-    data.slice(-10).reverse().forEach(r => {
-      html += `<tr>
-        <td>${r.date}</td>
-        <td class="${r.fiiCash < 0 ? 'neg' : 'pos'}">${r.fiiCash.toLocaleString()}</td>
-        <td class="pos">${r.diiCash.toLocaleString()}</td>
-        <td class="${r.fiiFut < 0 ? 'neg' : 'pos'}">${r.fiiFut.toLocaleString()}</td>
-        <td>${r.fiiOpt}</td>
-        <td>${r.fiiStkFut}</td>
-        <td>${r.fiiStkOpt}</td>
-        <td><b>${r.price}</b></td>
-        <td><b>${r.pcr}</b></td>
-      </tr>`;
-    });
-    table.innerHTML = html + '</tbody>';
-  }
+      let sum = 0;
+      const cumData = data.map(d => {
+        sum += d.fiiCash;
+        return sum;
+      });
 
-  init();
-</script>
+      charts.cum = new Chart(ctxCum, {
+        type: 'line',
+        data: {
+          labels,
+          datasets: [{
+            label: 'Cumulative FII Cash',
+            data: cumData,
+            borderColor: '#6366f1',
+            backgroundColor: 'rgba(79, 70, 229, 0.16)',
+            borderWidth: 2,
+            fill: true,
+            tension: 0.25,
+            pointRadius: 0
+          }]
+        },
+        options: {
+          responsive: true,
+          maintainAspectRatio: false,
+          plugins: {
+            legend: {
+              labels: {
+                color: '#e5e7eb',
+                boxWidth: 10,
+                font: { size: 10 }
+              }
+            },
+            tooltip: {
+              backgroundColor: 'rgba(15, 23, 42, 0.95)',
+              borderColor: '#1e293b',
+              borderWidth: 1,
+              titleColor: '#e5e7eb',
+              bodyColor: '#e5e7eb',
+              padding: 8
+            }
+          },
+          scales: {
+            x: {
+              ticks: {
+                color: '#94a3b8',
+                maxRotation: 0,
+                autoSkip: true,
+                maxTicksLimit: 8
+              },
+              grid: {
+                display: false
+              }
+            },
+            y: {
+              ticks: {
+                color: '#94a3b8',
+                font: { size: 9 }
+              },
+              grid: {
+                color: 'rgba(30, 64, 175, 0.15)'
+              }
+            }
+          }
+        }
+      });
+    }
+
+    function renderTable(data, headers) {
+      const table = document.getElementById('dataTable');
+      let html = '<thead><tr>' +
+        headers.map(h => `<th>${h}</th>`).join('') +
+        '</tr></thead><tbody>';
+
+      data.slice(-10).reverse().forEach(r => {
+        html += `
+          <tr>
+            <td>${r.date}</td>
+            <td class="${r.fiiCash < 0 ? 'neg' : 'pos'}">${r.fiiCash.toLocaleString()}</td>
+            <td class="pos">${r.diiCash.toLocaleString()}</td>
+            <td class="${r.fiiFut < 0 ? 'neg' : 'pos'}">${r.fiiFut.toLocaleString()}</td>
+            <td>${r.fiiOpt}</td>
+            <td>${r.fiiStkFut}</td>
+            <td>${r.fiiStkOpt}</td>
+            <td class="price-cell">${r.price}</td>
+            <td class="pcr-cell">${r.pcr}</td>
+          </tr>`;
+      });
+
+      table.innerHTML = html + '</tbody>';
+    }
+
+    init();
+  </script>
 </body>
 </html>
